@@ -1,0 +1,27 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "yeet",
+            "displayName": "Configure preset using toolchain file",
+            "description": "Sets Make generator, build and install directory",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "yeet",
+            "description": "",
+            "displayName": "",
+            "configurePreset": "yeet",
+            "jobs": 15,
+            "verbose": true
+        }
+    ]
+}

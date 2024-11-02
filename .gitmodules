@@ -1,0 +1,12 @@
+[submodule "deps/cpr"]
+	path = deps/cpr
+	url = https://github.com/libcpr/cpr.git
+[submodule "deps/libdatachannel"]
+	path = deps/libdatachannel
+	url = https://github.com/paullouisageneau/libdatachannel.git
+[submodule "deps/nanoid"]
+	path = deps/nanoid
+	url = https://github.com/mcmikecreations/nanoid_cpp.git
+[submodule "deps/fmt"]
+	path = deps/fmt
+	url = https://github.com/fmtlib/fmt.git
