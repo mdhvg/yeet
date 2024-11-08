@@ -35,6 +35,11 @@ add_subdirectory("${LIBDATACHANNEL_DIR}")
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE LibDataChannel::LibDataChannelStatic)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE "${LIBDATACHANNEL_DIR}/include")
 
+# nlohmann json
+set(JSON_DIR "${LIBDATACHANNEL_DIR}/deps/json")
+
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE "${JSON_DIR}/include")
+
 # Nanoid
 set(NANOID_DIR "${LIB_DIR}/nanoid")
 
