@@ -24,11 +24,11 @@ public:
     virtual void waitForDataChannel() = 0;
     virtual void startCommunication() = 0;
     virtual void beginFileTransfer() = 0;
+    virtual bool transferringData() = 0;
 public:
     // TODO: Optimize this to reduce pointer dereferencing
     std::vector<std::shared_ptr<rtc::DataChannel>> dataChannels;
     std::mutex completionLock;
-    bool open;
 protected:
     std::shared_ptr<rtc::DataChannel> communicationChannel;
     std::shared_ptr<rtc::PeerConnection> pc;
@@ -51,6 +51,7 @@ public:
     void waitForDataChannel() override;
     void startCommunication() override;
     void beginFileTransfer() override;
+    bool transferringData() override;
 private:
     FileWriter fileWriter;
 };
@@ -63,11 +64,8 @@ public:
     void waitForDataChannel() override;
     void startCommunication() override;
     void beginFileTransfer() override;
-public:
-    std::vector<std::thread> threads;
+    bool transferringData() override;
 private:
     FileReader fileReader;
     int threadCount;
 };
-
-void FileTransfer(std::shared_ptr<rtc::DataChannel> dc, FileReader& fileReader);

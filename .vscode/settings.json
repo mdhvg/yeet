@@ -90,6 +90,9 @@
         "*.inc": "cpp",
         "bitset": "cpp",
         "hash_map": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "__locale": "cpp",
+        "__threading_support": "cpp",
+        "ios": "cpp"
     }
 }

@@ -13,38 +13,6 @@ struct RunParams {
 inline RunParams runParams;
 inline Mode mode;
 
-// void messageHandler(std::shared_ptr<rtc::DataChannel> dc, std::mutex& dcOpenLock) {
-//     dcOpenLock.lock();
-//     if (mode == Mode::OFFERER) {
-//         fs::path filePath = fs::path("send") / FILE_NAME;
-//         std::ifstream file(filePath, std::ios::binary);
-//         std::cout << fs::current_path() << std::endl;
-//         if (file.is_open()) {
-//             file.seekg(0, std::ios::end);
-//             int size = file.tellg();
-//             file.seekg(0, std::ios::beg);
-//             char* data = new char[size];
-//             file.read(data, size);
-//             rtc::binary bytes(size);
-//             bytes.assign(reinterpret_cast<std::byte*>(data), reinterpret_cast<std::byte*>(data) + size);
-//             dc->send(bytes);
-//         }
-//     }
-//     // dc->close();
-// }
-
-// void messageHandler(std::shared_ptr<rtc::DataChannel> dc, std::mutex& dcOpenLock) {
-//     dcOpenLock.lock();
-//     std::string message;
-//     std::cout << (dc->isOpen() && message.find("quit") == std::string::npos ? "True" : "False") << std::endl;
-//     while (dc->isOpen() && message.find("quit") == std::string::npos) {
-//         std::cout << "Enter message: ";
-//         std::cin >> message;
-//         dc->send(message);
-//     }
-//     dc->close();
-// }
-
 void addValueArgument(std::unordered_map<std::string, std::string>& args, char* key, char* value) {
     args[key] = value;
 }
@@ -75,7 +43,7 @@ void parseArguments(std::unordered_map<std::string, std::string>& args, int argc
 }
 
 int main(int argc, char** argv) {
-    // rtc::InitLogger(rtc::LogLevel::Debug);
+    rtc::InitLogger(rtc::LogLevel::Fatal);
 
     std::unordered_map<std::string, std::string> args;
     args["t"] = "4";
@@ -101,6 +69,8 @@ int main(int argc, char** argv) {
     config.iceServers.push_back(rtc::IceServer("stun:stun3.l.google.com:19302"));
     config.iceServers.push_back(rtc::IceServer("stun:stun4.l.google.com:19302"));
 
+    config.enableIceTcp = true;
+
     std::shared_ptr<Peer> peer;
 
     if (runParams.mode == Mode::OFFERER) {
@@ -114,29 +84,10 @@ int main(int argc, char** argv) {
     peer->startCommunication();
     peer->beginFileTransfer();
 
-    // std::vector<std::thread> threads(std::stoi(args["t"]));
-    // for (int i = 0; i < std::stoi(args["t"]); i++) {
-    //     if (runParams.mode == Mode::OFFERER) {
-    //         threads[i] = std::thread(transmitter, dc, std::ref(dcOpenLock), std::ref(fileReader));
-    //     }
-    //     else {
-    //         threads[i] = std::thread(messageHandler, dc, std::ref(dcOpenLock));
-    //     }
-    // }
-
-    while (peer->open) {
-        peer->open = false;
-        for (auto& dc : peer->dataChannels) {
-            if (dc->isOpen()) {
-                peer->open = true;
-                break;
-            }
-        }
+    std::this_thread::sleep_for(std::chrono::seconds(6));
+    while (peer->transferringData()) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-
-    // for (auto& thread : threads) {
-    //     thread.join();
-    // }
-
+    std::cout << "File transfer complete" << std::endl;
     return 0;
 }

@@ -48,6 +48,6 @@ std::string FileReader::name() { return filePath.filename().string(); }
 
 int FileReader::chunks() { return numChunks; }
 
-bool FileReader::hasNext() { return fileHandle.tellg() < fileSize; }
+bool FileReader::hasNext() { return fileHandle.tellg() < static_cast<std::streamoff>(fileSize); }
 
 std::string FileReader::getID() { return fileID; }

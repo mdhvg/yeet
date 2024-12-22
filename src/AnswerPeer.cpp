@@ -83,7 +83,7 @@ void AnswerPeer::startCommunication() {
     communicationChannel->onMessage([&](rtc::message_variant message) {
         bool ack = 0;
         memcpy(&ack, std::get<rtc::binary>(message).data(), 1);
-        assert(ack && "File transfer not acknoledged");
+        assert(ack && "File transfer not acknowledged");
         fileTransferLock.unlock();
         });
 
@@ -97,31 +97,32 @@ void AnswerPeer::startCommunication() {
 void AnswerPeer::beginFileTransfer()
 {
     fileTransferLock.lock();
-    open = true;
     for (int i = 0; i < threadCount; i++) {
         auto dc = pc->createDataChannel(std::to_string(i));
-        dataChannels.push_back(dc);
-    }
-    for (auto& dc : dataChannels) {
-        dc->onOpen([this, &dc]() {
-            std::cout << "DataChannel " << dc->label() << " opened" << std::endl;
-            this->threads.push_back(std::thread(FileTransfer, dc, std::ref(this->fileReader)));
+        dc->onOpen([dc, this]() {
+            while (fileReader.hasNext() && dc->isOpen()) {
+                dc->send(fileReader.readNextPacket());
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+            if (!fileReader.hasNext() && dc->isOpen()) {
+                dc->close();
+            }
             });
-        dc->onClosed([this, &dc]() {
+        dc->onError([dc](std::string error) {
+            std::cout << "DataChannel " << dc->label() << " error: " << error << std::endl;
+            });
+        dc->onClosed([dc]() {
             std::cout << "DataChannel " << dc->label() << " closed" << std::endl;
-            this->completionLock.unlock();
             });
+        fmt::print("Datachannel {} created\n", dc->label());
+        dataChannels.push_back(dc);
     }
     fileTransferLock.unlock();
 }
 
-void FileTransfer(std::shared_ptr<rtc::DataChannel> dc, FileReader& fileReader) {
-    while (fileReader.hasNext()) {
-        dc->send(fileReader.readNextPacket());
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-    if (dc->isOpen()) {
-        dc->close();
-    }
-    std::cout << "Closing thread for " << dc->label() << std::endl;
+bool AnswerPeer::transferringData()
+{
+    return std::any_of(dataChannels.begin(), dataChannels.end(), [](std::shared_ptr<rtc::DataChannel> dc) {
+        return dc->isOpen();
+        });
 }

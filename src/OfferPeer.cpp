@@ -62,7 +62,7 @@ void OfferPeer::waitForDataChannel() {
 void OfferPeer::startCommunication()
 {
     communicationChannel->onOpen([&]() {
-        std::cout << "Communication DataChannel opened" << std::endl;
+        std::cout << "DataChannel opened: " << communicationChannel->label() << std::endl;
         communicationLock.unlock();
         });
 
@@ -100,16 +100,22 @@ void OfferPeer::beginFileTransfer()
     pc->onDataChannel([&](std::shared_ptr<rtc::DataChannel> datachannel) {
         std::cout << "DataChannel created: " << datachannel->label() << std::endl;
         dataChannels.push_back(datachannel);
-        datachannel->onMessage([&](rtc::message_variant message) {
+        datachannel->onMessage([this, datachannel](rtc::message_variant message) {
             fileWriter.write(std::get<rtc::binary>(message));
-            if (fileWriter.isComplete() && datachannel->isOpen()) {
+            if (fileWriter.isComplete()
+                &&
+                datachannel->isOpen()) {
                 datachannel->close();
             }
             });
-        datachannel->onClosed([&]() {
+        datachannel->onClosed([datachannel]() {
             std::cout << "DataChannel closed: " << datachannel->label() << std::endl;
-            completionLock.unlock();
             });
         });
     fileTransferLock.unlock();
+}
+
+bool OfferPeer::transferringData()
+{
+    return !fileWriter.isComplete();
 }
